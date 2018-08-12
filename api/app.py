@@ -1,3 +1,6 @@
+# api/app.py
+"""Run with `python app.py`
+"""
 from database import init_db
 from flask import Flask
 from flask_graphql import GraphQLView
