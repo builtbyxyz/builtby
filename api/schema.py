@@ -36,7 +36,7 @@ class Query(graphene.ObjectType):
     # alternative for using list interface
     permits = graphene.List(Permit)
 
-    def resolve_permits(self, info, args):
+    def resolve_permits(self, info):
         return list(PermitModel.objects.all())
 
 

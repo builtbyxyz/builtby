@@ -35,18 +35,18 @@ class Location(EmbeddedDocument):
 
 class Permit(DynamicDocument):
 
-    meta = {'collection': 'land_use'}
-    permitnum = StringField()
-    permitclass = StringField()
-    permitclassmapped = StringField()
-    permittypemapped = StringField()
+    meta = {'collection': 'commercial'}
+    permit_num = StringField()
+    permit_class = StringField()
+    permit_class_mapped = StringField()
+    # permittypemapped = StringField()
     # applieddate = DateTimeField()  datetime does not work yet as a filter
-    applieddate = StringField(required=False)
-    location_1 = EmbeddedDocumentField(Location)
-    location_1_address = StringField()
-    location_1_city = StringField()
-    location_1_state = StringField()
-    location_1_zip = IntField()
+    applied_date = StringField(required=False)
+    # location_1 = EmbeddedDocumentField(Location)
+    address = StringField()
+    city = StringField()
+    state = StringField()
+    zip = IntField()
     longitude = FloatField()
     latitude = FloatField()
     description = StringField()
