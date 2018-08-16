@@ -11,9 +11,19 @@ git clone https://github.com/mnguyenngo/builtby.git
 ```bash
 cd builtby/rest-api
 ```
-3. Run the `api.py`
+3. Build the [virtual environment](https://virtualenv.pypa.io/en/stable/)
+```bash
+virtualenv env
+source env/bin/activate
+pip install -r requirements.txt
+```
+4. Run the `api.py`
 ```bash
 python api.py
+```
+5. Deactivate virtual environment
+```bash
+deactivate
 ```
 
 ## Querying from the API
