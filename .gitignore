@@ -1,1 +1,4 @@
 __pycache__/
+env/
+notebooks/
+private_data/
