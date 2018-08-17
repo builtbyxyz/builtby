@@ -37,3 +37,9 @@ With Python:
 ```python
 requests.get('http://localhost:5000/').json()
 ```
+
+## API Authentication
+
+Basic HTTP authorization is currently being used.
+
+[Tutorial Reference](http://polyglot.ninja/securing-rest-apis-basic-http-authentication-python-flask/)

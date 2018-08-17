@@ -1,14 +1,19 @@
 from flask import Flask
+from flask_httpauth import HTTPBasicAuth
 from flask_restful import Api, Resource
 # reqparse,
 # abort,
 from pymongo import MongoClient
 import json
-# from bson import json_util
+
 
 app = Flask(__name__)
 api = Api(app)
+auth = HTTPBasicAuth()
 
+USER_DATA = {
+    'admin': 'builtby2018'
+}
 
 with open('../data/commercial.json', 'r') as f:
     PERMITS = json.load(f)
@@ -22,8 +27,16 @@ for company in COMPANIES:
     company['_id'] = str(company['_id'])
 
 
+@auth.verify_password
+def verify(username, password):
+    if not (username and password):
+        return False
+    return USER_DATA.get(username) == password
+
+
 # shows a list of all permits
 class PermitList(Resource):
+    @auth.login_required
     def get(self):
         """Return the current TODO dictionary
 
@@ -41,6 +54,7 @@ class PermitList(Resource):
 
 # shows a list of all permits
 class Companies(Resource):
+    @auth.login_required
     def get(self):
         """Return the current TODO dictionary
 
