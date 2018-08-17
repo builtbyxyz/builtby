@@ -36,7 +36,7 @@ def verify(username, password):
 
 # shows a list of all permits
 class PermitList(Resource):
-    @auth.login_required
+    # @auth.login_required
     def get(self):
         """Return the current TODO dictionary
 
@@ -54,7 +54,7 @@ class PermitList(Resource):
 
 # shows a list of all permits
 class Companies(Resource):
-    @auth.login_required
+    # @auth.login_required
     def get(self):
         """Return the current TODO dictionary
 
