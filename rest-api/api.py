@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_httpauth import HTTPBasicAuth
 from flask_restful import Api, Resource
+from flask_cors import CORS
 # reqparse,
 # abort,
 from pymongo import MongoClient
@@ -9,6 +10,7 @@ import json
 
 app = Flask(__name__)
 api = Api(app)
+CORS(app)
 auth = HTTPBasicAuth()
 
 USER_DATA = {
