@@ -1,4 +1,5 @@
 flask
 flask-restful
 flask-HTTPAuth
+flask-cors
 pymongo

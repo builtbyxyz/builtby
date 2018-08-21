@@ -3,6 +3,7 @@ Web application to browse projects filtered by construction professionals
 
 URL: builtby.xyz
 
+![screenshot](images/2018-08-17screenshot.png)
 
 ## Technologies
 
@@ -21,5 +22,5 @@ URL: builtby.xyz
 
 ## Roadmap
 
-- [ ] Flask web application that queries from a graph database to show the recent permit applications
+- [ ] Web application that shows the recent permit applications
 - [ ] Company profiles

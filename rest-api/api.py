@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_httpauth import HTTPBasicAuth
 from flask_restful import Api, Resource
+from flask_cors import CORS
 # reqparse,
 # abort,
 from pymongo import MongoClient
@@ -9,6 +10,7 @@ import json
 
 app = Flask(__name__)
 api = Api(app)
+CORS(app)
 auth = HTTPBasicAuth()
 
 USER_DATA = {
@@ -36,7 +38,7 @@ def verify(username, password):
 
 # shows a list of all permits
 class PermitList(Resource):
-    @auth.login_required
+    # @auth.login_required
     def get(self):
         """Return the current TODO dictionary
 
@@ -54,7 +56,7 @@ class PermitList(Resource):
 
 # shows a list of all permits
 class Companies(Resource):
-    @auth.login_required
+    # @auth.login_required
     def get(self):
         """Return the current TODO dictionary
 
