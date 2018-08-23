@@ -20,6 +20,9 @@ USER_DATA = {
 with open('../data/commercial.json', 'r') as f:
     PERMITS = json.load(f)
 
+with open('../data/new_projects.json', 'r') as f:
+    NEW_PROJECTS = json.load(f)
+
 mc = MongoClient('localhost', 27017)
 db = mc['builtby']
 COMPANIES = list(db['companies_20180816'].find())
@@ -55,6 +58,24 @@ class PermitList(Resource):
 
 
 # shows a list of all permits
+class NewProjectsList(Resource):
+    # @auth.login_required
+    def get(self):
+        """Return the current TODO dictionary
+
+        Example:
+            # In the terminal
+            $ curl http://localhost:5000/new
+
+            OR
+
+            # Python
+            requests.get('http://localhost:5000/new').json()
+        """
+        return NEW_PROJECTS
+
+
+# shows a list of all permits
 class Companies(Resource):
     # @auth.login_required
     def get(self):
@@ -75,8 +96,10 @@ class Companies(Resource):
 # Setup the Api resource routing here
 # Route the URL to the resource
 api.add_resource(PermitList, '/')
+api.add_resource(NewProjectsList, '/new')
 api.add_resource(Companies, '/companies')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # app.run(debug=True)
+    app.run()
