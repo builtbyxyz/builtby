@@ -1,24 +1,43 @@
+"""API for retrieving permit data
+
+Example of GET request
+
+    # In the terminal
+    $ curl http://localhost:5000/new
+
+    OR
+
+    # Python
+    requests.get('http://localhost:5000/new').json()
+
+"""
+
 from flask import Flask
 from flask_httpauth import HTTPBasicAuth
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
-# reqparse,
-# abort,
 from pymongo import MongoClient
 import json
-
+import requests
+from utils.manage_params import manage_params
 
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
 auth = HTTPBasicAuth()
 
-USER_DATA = {
-    'admin': 'builtby2018'
-}
 
-with open('../data/commercial.json', 'r') as f:
-    PERMITS = json.load(f)
+parser = reqparse.RequestParser()
+with open('supported_args.txt', 'r') as f:
+    supp_args = f.readlines()
+    for arg in supp_args:
+        parser.add_argument(arg.rstrip('\n'))
+
+
+# USER_DATA = {
+#     'admin': 'builtby2018'
+# }
+
 
 with open('../data/new_projects.json', 'r') as f:
     NEW_PROJECTS = json.load(f)
@@ -32,45 +51,80 @@ for company in COMPANIES:
     company['_id'] = str(company['_id'])
 
 
-@auth.verify_password
-def verify(username, password):
-    if not (username and password):
-        return False
-    return USER_DATA.get(username) == password
+# @auth.verify_password
+# def verify(username, password):
+#     if not (username and password):
+#         return False
+#     return USER_DATA.get(username) == password
 
 
+# ----- RESOURCES -----
 # shows a list of all permits
-class PermitList(Resource):
+class Permit_LandUse(Resource):
     # @auth.login_required
     def get(self):
-        """Return the current TODO dictionary
-
-        Example:
-            # In the terminal
-            $ curl http://localhost:5000/
-
-            OR
-
-            # Python
-            requests.get('http://localhost:5000/').json()
+        """Return all permit applications from the Seattle Open Data
         """
-        return PERMITS
+        url = 'https://data.seattle.gov/resource/meme-txgf'
+        # get arguments passed by user
+        args = parser.parse_args()
+        # compile params dict with args
+        params = manage_params(args)
+        response = requests.get(url, params=params)
+        LANDUSE = response.json()
+        return LANDUSE
 
 
-# shows a list of all permits
+class Permit_Building(Resource):
+    # @auth.login_required
+    def get(self):
+        """Return all permit applications from the Seattle Open Data
+        """
+        url = 'https://data.seattle.gov/resource/k44w-2dcq'
+        # get arguments passed by user
+        args = parser.parse_args()
+        # compile params dict with args
+        params = manage_params(args)
+        response = requests.get(url, params=params)
+        BUILDINGS = response.json()
+        return BUILDINGS
+
+
+class Permit_Electrical(Resource):
+    # @auth.login_required
+    def get(self):
+        """Return all permit applications from the Seattle Open Data
+        """
+        url = 'https://data.seattle.gov/resource/axxs-4epa'
+        # get arguments passed by user
+        args = parser.parse_args()
+        # compile params dict with args
+        params = manage_params(args)
+        response = requests.get(url, params=params)
+        ELECTRICAL = response.json()
+        return ELECTRICAL
+
+
+class Permit_Trade(Resource):
+    # @auth.login_required
+    def get(self):
+        """Return all permit applications from the Seattle Open Data
+        """
+        url = 'https://data.seattle.gov/resource/rqjp-prb2'
+        # get arguments passed by user
+        args = parser.parse_args()
+        # compile params dict with args
+        params = manage_params(args)
+        response = requests.get(url, params=params)
+        TRADE = response.json()
+        return TRADE
+
+
+# shows projects with upcoming design review meetings
 class NewProjectsList(Resource):
     # @auth.login_required
     def get(self):
-        """Return the current TODO dictionary
-
-        Example:
-            # In the terminal
-            $ curl http://localhost:5000/new
-
-            OR
-
-            # Python
-            requests.get('http://localhost:5000/new').json()
+        """Return the current NEW_PROJECTS dictionary
         """
         return NEW_PROJECTS
 
@@ -79,27 +133,22 @@ class NewProjectsList(Resource):
 class Companies(Resource):
     # @auth.login_required
     def get(self):
-        """Return the current TODO dictionary
-
-        Example:
-            # In the terminal
-            $ curl http://localhost:5000/companies
-
-            OR
-
-            # Python
-            requests.get('http://localhost:5000/companies').json()
+        """Return the current companies database
         """
         return COMPANIES
 
 
 # Setup the Api resource routing here
 # Route the URL to the resource
-api.add_resource(PermitList, '/')
+# api.add_resource(Permit_LandUse, '/')
+api.add_resource(Permit_LandUse, '/permits/landuse')
+api.add_resource(Permit_Building, '/permits/building')
+api.add_resource(Permit_Electrical, '/permits/electrical')
+api.add_resource(Permit_Trade, '/permits/trade')
 api.add_resource(NewProjectsList, '/new')
 api.add_resource(Companies, '/companies')
 
 
 if __name__ == '__main__':
-    # app.run(debug=True)
-    app.run()
+    app.run(debug=True)
+    # app.run()
