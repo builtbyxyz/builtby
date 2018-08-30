@@ -150,5 +150,5 @@ api.add_resource(Companies, '/companies')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-    # app.run()
+    # app.run(debug=True)
+    app.run()
