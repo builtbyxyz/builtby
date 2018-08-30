@@ -4,7 +4,7 @@ import requests
 import time
 
 
-def get_latlon(address, return_latlon_only=True):
+def get_latlon(address, return_latlon_only=True, lag=2):
     """Use Google Map's Geocoding API to return latitude and longitude when
     given an address
 
@@ -17,7 +17,7 @@ def get_latlon(address, return_latlon_only=True):
         latitude (float)
         longitude (float)
     """
-    time.sleep(1)  # wait 1 seconds before each request
+    time.sleep(lag)  # wait 1 seconds before each request
 
     geo_api = 'https://maps.googleapis.com/maps/api/geocode/json'
 

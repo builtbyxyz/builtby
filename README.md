@@ -1,26 +1,23 @@
 # BuiltBy
-Web application to browse projects filtered by construction professionals
+Web application to browse projects filtered by construction professionals.
 
 URL: builtby.xyz
 
-![screenshot](images/2018-08-17screenshot.png)
+![screenshot](images/2018-08-24screenshot.png)
 
-## Technologies
+___
 
-- Graph database
-- SQL and MongoDB where applicable
-- Data mining (Selenium, BeautifulSoup)
+## Tech Stack
+
 - Python
-- Flask
-- Front-end TBD
+- Flask REST API
+- Data mining (Selenium, BeautifulSoup)
+- React Full Stack Web App
 - Information extraction
-- Natural Language Understanding (NLU)
-- Natural Language Processing (NLP)
-- sPaCy
-- Deep Learning
-
+- NLU & NLP
 
 ## Roadmap
 
+- [x] Flask REST API
 - [ ] Web application that shows the recent permit applications
 - [ ] Company profiles
