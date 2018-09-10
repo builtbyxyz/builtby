@@ -2,6 +2,7 @@
 """
 import requests
 import time
+import yaml
 
 
 def get_latlon(address, return_latlon_only=True, lag=2):
@@ -21,8 +22,17 @@ def get_latlon(address, return_latlon_only=True, lag=2):
 
     geo_api = 'https://maps.googleapis.com/maps/api/geocode/json'
 
+    with open("secrets/googlemaps_apikey.yaml", 'r') as f:
+        try:
+            credentials = yaml.load(f)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    api_key = credentials['API_key']
+
     geo_params = {
-        'address': address
+        'address': address,
+        'api_key': api_key
     }
 
     response = requests.get(geo_api, params=geo_params)

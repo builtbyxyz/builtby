@@ -3,3 +3,5 @@ env/
 notebooks/
 private_data/
 secret/
+pdfs/
+.DS_Store
