@@ -24,6 +24,9 @@ def load_data(path, attr_name, ent_label, qty=None, random=True, include=None):
     if qty is None:  # return all companies
         qty = len(all_orgs)
 
+    if qty > len(all_orgs):  # return all companies
+        qty = len(all_orgs)
+
     if random:
         total_qty = len(all_orgs)
         arr_selection = np.random.choice(total_qty, qty, replace=False)
@@ -45,6 +48,7 @@ def load_data(path, attr_name, ent_label, qty=None, random=True, include=None):
     print(f"Packaging {len(filtered_data)} organizations")
     for text in filtered_data:
         # package into schema and load into container
+        text = reformat_org_name(text)
         ent_dict = {'entities': [(0, len(text), ent_label)]}
         training_data.append((text, ent_dict))
         
@@ -94,7 +98,7 @@ def augment_org_data(org_name):
 
     for text in aug_text:
         begin = text.find(org_name)
-        last = begin + len(org_name) - 1
+        last = begin + len(org_name)
         ent_dict = {'entities': [(begin, last, 'ORG')]}
         aug_data.append((text, ent_dict))
 
@@ -145,7 +149,7 @@ def augment_org_w_loc(org_name, loc):
         entities = []
         for ent_obj, ent_label in [(org_name, 'ORG'), (loc, 'LOC')]:
             begin = text.find(ent_obj)
-            last = begin + len(ent_obj) - 1
+            last = begin + len(ent_obj)
             ent = (begin, last, ent_label)
             entities.append(ent)
         ent_dict = {'entities': entities}
@@ -155,15 +159,15 @@ def augment_org_w_loc(org_name, loc):
     return aug_data
 
 
-def reformat_org_name(org_name):
+def reverse_caps(text):
     # capitalize name of company
     reformat_name = []
-    for word in org_name.split():
-        if word not in ['LLC', 'PLLC']:
+    for word in text.split():
+        if word not in ['LLC', 'PLLC', 'WA']:
             reformat_name.append(word.capitalize())
         else:
             reformat_name.append(word)
 
     formatted = " ".join(reformat_name)
-    # print(f"Changed {org_name} to {formatted} for augmented data.")
+    # print(f"Changed {text} to {formatted} for augmented data.")
     return formatted

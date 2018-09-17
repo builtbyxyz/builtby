@@ -39,17 +39,17 @@ TEST_DATA = [
     'VULCAN, INC.',
     'SITE WORKSHOP',
     'Architect: Ankrom Moisan Architects',
-    'Architect: Ankrom Moisan'
+    'Architect: Ankrom Moisan',
     'Developer: Vulcan, Inc.',
     'Landscape Architect: Site Workshop',
     'The architect who designed this building was Ankrom Moisan.',
     'Ankrom Moisan was the architect',
     'Ankrom Moisan designed this building',
-    'The architect, Ankrom Moisan, designed this building'
+    'The architect, Ankrom Moisan, designed this building',
     'The developer who owns this building is Vulcan, Inc.',
     'Vulcan, Inc. is the developer',
     'Vulcan, Inc. owns this building',
-    'The developer, Vulcan, Inc., owns this building'
+    'The developer, Vulcan, Inc., owns this building',
     '1505 5TH AVE #300 SEATTLE, WA 98101',
     '222 ETRURIA STREET, #200 SEATTLE, WA 98109',
     '505 5TH AVE S, #900 SEATTLE, WA 98104'
@@ -59,7 +59,7 @@ def get_train_data(train_data_path):
 
     ORG_DATA = load_org_data(train_data_path, qty=50, random=True)
     LOC_DATA = load_loc_data(train_data_path, qty=50, random=True)
-    
+
     ORG_WITH_LOC_DATA = []
     loc_idxs = np.random.randint(0, len(LOC_DATA), len(ORG_DATA), dtype=int)
     for idx, item in enumerate(ORG_DATA):
