@@ -7,6 +7,7 @@ import plac
 
 from utils.geo import get_latlon
 from utils.pdf import download_and_convert_pdf
+from utils.mongo import write_collection, write_doc
 
 
 def get_rss_items(rss_url):
@@ -142,7 +143,14 @@ def create_new_projects():
     return upcoming_projects
 
 
-def update_new_projects(path_to_exist):
+def load_json(path_to_json):
+    with open(path_to_json, 'r') as f:
+        new_projects = json.load(f)
+
+    return new_projects
+
+
+def update_new_projects(path_to_json):
     """Adds new items to an existing JSON file
     """
     base_url = "http://www.seattle.gov/DPD/aboutus/news/events/DesignReview/"
@@ -151,8 +159,7 @@ def update_new_projects(path_to_exist):
     # get rss html items
     items = get_rss_items(rss_url)
 
-    with open(path_to_exist, 'r') as f:
-        new_projects = json.load(f)
+    new_projects = load_json(path_to_json)
 
     last_pub_date = new_projects['meta']['last_pub_date']
 
@@ -193,7 +200,7 @@ def get_last_date(data, k='published_date'):
     return last_date.strftime('%m/%d/%Y')
 
 
-def package_data(projects_list, path):
+def package_new_projects(projects_list, path):
     """Creates meta data object and saves the new projects under the 'data' key
     """
     last_run_date = datetime.datetime.now().strftime('%m/%d/%Y')
@@ -206,8 +213,12 @@ def package_data(projects_list, path):
 
     new_projects_db['data'] = projects_list
 
+    return new_projects_db
+
+
+def write_to_json(data, path):
     with open(path, 'w') as f:
-        json.dump(new_projects_db, f, indent=4)
+        json.dump(data, f, indent=4)
 
 
 def resolve_geo_attr(path):
@@ -259,21 +270,35 @@ def get_project_image(path):
     update=("Update an existing JSON file; provide path to existing file",
             "flag", "u"),
     resolve_geo=("Add lat lon info to projects where missing", "flag", None),
-    get_images=("Get image from design proposal cover", "flag", None))
-def main(path, new=False, update=False, resolve_geo=False, get_images=False):
+    get_images=("Get image from design proposal cover", "flag", None),
+    to_mongo=("Write to mongodb", "flag", None),
+    to_json=("Write to json", "flag", None),
+    convert_json_to_mongo=("Convert existing json file to mongodb", "flag",
+                           None)
+    )
+def main(path, new=False, update=False, resolve_geo=False, get_images=False,
+         to_mongo=False, to_json=False, convert_json_to_mongo=False):
     """Creates or updates a JSON file with projects from an RSS feed."""
     if new:  # if new JSON file
         new_projects = create_new_projects()
-        package_data(new_projects, path)
-    if update:
+        package_new_projects(new_projects, path)
+    elif update:
         new_projects = update_new_projects(path)
-        package_data(new_projects, path)
-    if resolve_geo:
+        if to_json:
+            packaged_projects = package_new_projects(new_projects, path)
+            write_to_json(packaged_projects)
+        if to_mongo:
+            write_collection('builtby', 'new_projects', new_projects)
+    elif resolve_geo:
         projects = resolve_geo_attr(path)
-        package_data(projects, path)
-    if get_images:
+        package_new_projects(projects, path)
+    elif get_images:
         projects = get_project_image(path)
-        package_data(projects, path)
+        package_new_projects(projects, path)
+    elif convert_json_to_mongo:
+        new_projects = load_json(path)
+        data = new_projects['data']
+        write_collection('builtby', 'new_projects', data)
 
 
 if __name__ == "__main__":
