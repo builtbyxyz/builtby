@@ -1,9 +1,12 @@
 import datetime
 import requests
 from bs4 import BeautifulSoup
-from utils.geo import get_latlon
+
 import json
 import plac
+
+from utils.geo import get_latlon
+from utils.pdf import download_and_convert_pdf
 
 
 def get_rss_items(rss_url):
@@ -27,8 +30,7 @@ def create_project_obj(elem):
     # get todays date in MM/DD/YYYY format as string
     today = datetime.datetime.now().strftime('%m/%d/%Y')
 
-    # create empty
-    project = {}
+    project = {}  # create empty dictionary
     link = elem.select_one('link').text.strip()
     published_date = elem.select_one('pubdate').text.split()[0]
     title = elem.select_one('title').text.strip()
@@ -62,8 +64,9 @@ def add_lat_lon(project):
     if 'latitude' not in project.keys():
         full_address = project['address'] + ' Seattle, WA'
         lat, lon = get_latlon(full_address)
-    project['latitude'] = lat
-    project['longitude'] = lon
+
+        project['latitude'] = lat
+        project['longitude'] = lon
     return project
 
 
@@ -173,55 +176,104 @@ def update_new_projects(path_to_exist):
     for project in newly_published_projects:
         project = add_lat_lon(project)
 
-    combined = new_projects.copy()
-    combined.update(newly_published_projects)
+    combined = new_projects['data']
+    combined.extend(newly_published_projects)
+    return combined
 
 
-def get_last_date(data_dict, k='published_date'):
+def get_last_date(data, k='published_date'):
     """Extracts the date field for each item in the dict and returns the most
     recent date.
     """
     dates = []
-    for item in data_dict:
+    for item in data:
         date_item = datetime.datetime.strptime(item[k], '%m/%d/%Y')
         dates.append(date_item)
     last_date = max(dates)
     return last_date.strftime('%m/%d/%Y')
 
 
-def package_data(projects_dict, path):
+def package_data(projects_list, path):
     """Creates meta data object and saves the new projects under the 'data' key
     """
     last_run_date = datetime.datetime.now().strftime('%m/%d/%Y')
-    last_pub_date = get_last_date(projects_dict, k='published_date')
+    last_pub_date = get_last_date(projects_list, k='published_date')
 
     new_projects_db = {}
     new_projects_db['meta'] = {
         'last_pub_date': last_pub_date,
         'last_run_date': last_run_date}
 
-    new_projects_db['data'] = projects_dict
+    new_projects_db['data'] = projects_list
 
     with open(path, 'w') as f:
         json.dump(new_projects_db, f, indent=4)
 
 
+def resolve_geo_attr(path):
+    with open(path, 'r') as f:
+        new_projects = json.load(f)
+
+    projects = new_projects['data']
+
+    for project in projects:
+        if project['latitude'] is None:
+            full_address = project['address'] + ' Seattle, WA'
+            print(f"Attempting to retrieve lat and lon for {full_address}")
+            lat, lon = get_latlon(full_address)
+
+            project['latitude'] = lat
+            project['longitude'] = lon
+
+    return projects
+
+
+def get_project_image(path):
+    with open(path, 'r') as f:
+        new_projects = json.load(f)
+
+    projects = new_projects['data']
+
+    for project in projects:
+        dp_pdf_link = project['design_proposal_link']
+        project_address = project['address']
+        if dp_pdf_link is not None:
+            if 'dpimage_url' not in project.keys():
+                if dp_pdf_link.split('.')[-1] is 'pdf':
+                    try:
+                        print(f"Obtaining image for {project_address}")
+                        png_fname = download_and_convert_pdf(dp_pdf_link)
+
+                        s3_url = "https://s3-us-west-2.amazonaws.com/builtby/"
+
+                        project['dpimage_url'] = s3_url + png_fname
+                    except Exception as exc:
+                        print(f"Encountered error with {project_address}")
+                        print(exc)
+    return projects
+
+
 @plac.annotations(
-    path=("Path for new JSON file",
-          "option", "p"),
+    path=("Path for new JSON file", "positional"),
+    new=("Create new JSON file; provide path to existing file", "flag", "n"),
     update=("Update an existing JSON file; provide path to existing file",
-            "option", "u"))
-def main(path, update):
+            "flag", "u"),
+    resolve_geo=("Add lat lon info to projects where missing", "flag", None),
+    get_images=("Get image from design proposal cover", "flag", None))
+def main(path, new=False, update=False, resolve_geo=False, get_images=False):
     """Creates or updates a JSON file with projects from an RSS feed."""
-    if update is None:  # if new JSON file
-        if path is None:
-            path = './new_projects.json'
+    if new:  # if new JSON file
         new_projects = create_new_projects()
         package_data(new_projects, path)
-    else:
-        path = update
+    if update:
         new_projects = update_new_projects(path)
         package_data(new_projects, path)
+    if resolve_geo:
+        projects = resolve_geo_attr(path)
+        package_data(projects, path)
+    if get_images:
+        projects = get_project_image(path)
+        package_data(projects, path)
 
 
 if __name__ == "__main__":

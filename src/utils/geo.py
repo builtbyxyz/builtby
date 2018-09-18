@@ -22,7 +22,7 @@ def get_latlon(address, return_latlon_only=True, lag=2):
 
     geo_api = 'https://maps.googleapis.com/maps/api/geocode/json'
 
-    with open("secrets/googlemaps_apikey.yaml", 'r') as f:
+    with open("utils/secret/googlemaps_apikey.yaml", 'r') as f:
         try:
             credentials = yaml.load(f)
         except yaml.YAMLError as exc:
@@ -37,7 +37,13 @@ def get_latlon(address, return_latlon_only=True, lag=2):
 
     response = requests.get(geo_api, params=geo_params)
 
-    if response.status_code == 200:
+    if response.status_code != 200:
+        print(f'Request failed, status code {response.status_code}'
+              '\nContent:'
+              '\n{response.content[:1000]}')
+        return None
+
+    else:
         if return_latlon_only:
             results = latlon = response.json()['results']
             if len(results) > 0:
@@ -48,6 +54,3 @@ def get_latlon(address, return_latlon_only=True, lag=2):
                 return None, None
         else:
             return response.json()
-    else:
-        print(f"{response.status_code}: Could not return lat and lon results.")
-        return None
