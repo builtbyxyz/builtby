@@ -8,7 +8,7 @@ import plac
 from utils.geo import get_latlon
 from utils.pdf import download_and_convert_pdf
 from utils.mongo import (load_collection, write_collection, write_doc,
-                         delete_collection)
+                         delete_collection, update_doc)
 
 
 """ GENERAL FUNCTIONS """
@@ -260,7 +260,7 @@ def add_lat_lon(project):
     return project
 
 
-def resolve_geo_attr(path):
+def resolve_geo_attr_json(path):
     with open(path, 'r') as f:
         new_projects = json.load(f)
 
@@ -274,6 +274,22 @@ def resolve_geo_attr(path):
 
             project['latitude'] = lat
             project['longitude'] = lon
+
+    return projects
+
+
+def resolve_geo_attr_mongo(cursor):
+    projects = cursor.find()
+    for project in projects:
+        if project['latitude'] is None:
+            full_address = project['address'] + ', Seattle, WA'
+            print(f"Attempting to retrieve lat and lon for {full_address}")
+            lat, lon = get_latlon(full_address)
+            if lat is not None:
+                project['latitude'] = lat
+                project['longitude'] = lon
+                update_doc('builtby', 'new_projects', project, 'latitude',
+                           'longitude')
 
     return projects
 
@@ -328,7 +344,7 @@ def update_new_projects_db(path_to_json):
 
     # add design proposal information to project object
     for project in newly_published_projects:
-        project = parse_propasal_page(project)
+        project = parse_proposal_page(project)
 
     # add latitude and longitude data to project object
     for project in newly_published_projects:
@@ -342,9 +358,12 @@ def update_new_projects_db(path_to_json):
 @plac.annotations(
     new=("Create new collection", "flag", "n"),
     overwrite=("Overwrite the existing collection", "flag", "o"),
-    to_json=("Convert mongo collection to json", "flag", None)
+    to_json=("Convert mongo collection to json", "flag", None),
+    to_mongo=("Convert json to mongo", "option", None),
+    resolve_geo=("Resolve missing lat and lon info", "flag", None)
     )
-def main(new=False, overwrite=False, to_json=False):
+def main(new=False, overwrite=False, to_json=False, to_mongo=None,
+         resolve_geo=False):
     """Creates or updates a JSON file with projects from an RSS feed."""
     if new:
         create_new_projects_db(dbname='builtby', coll='new_projects',
@@ -360,6 +379,15 @@ def main(new=False, overwrite=False, to_json=False):
 
         path = "../data/new_projects.json"
         write_to_json(projects, path)
+    elif to_mongo is not None:
+        path = to_mongo
+        projects = load_json(path)
+        write_collection(dbname='builtby', coll='new_projects', data=projects,
+                         delete_existing=True)
+    elif resolve_geo:
+        projects = load_collection(dbname='builtby', coll='new_projects')
+        resolve_geo_attr_mongo(projects)
+
     else:
         print("Hello world!")
 

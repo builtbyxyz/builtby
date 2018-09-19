@@ -18,6 +18,14 @@ def write_doc(dbname, coll, doc):
     collection.insert_one(doc)
 
 
+def update_doc(dbname, coll, doc, *fields_dict):
+    mc = MongoClient('localhost', 27017)
+    db = mc[dbname]
+    collection = db[coll]
+    change = {field: doc[field] for field in fields_dict}
+    collection.find_one_and_update({'_id': doc['_id']}, {'$set': change})
+
+
 def load_collection(dbname, coll, to_json=False):
     """
     """
