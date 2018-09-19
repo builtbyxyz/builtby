@@ -18,11 +18,10 @@ def get_latlon(address, return_latlon_only=True, lag=2):
         latitude (float)
         longitude (float)
     """
-    time.sleep(lag)  # wait 1 seconds before each request
 
     geo_api = 'https://maps.googleapis.com/maps/api/geocode/json'
 
-    with open("secrets/googlemaps_apikey.yaml", 'r') as f:
+    with open("utils/secret/googlemaps_apikey.yaml", 'r') as f:
         try:
             credentials = yaml.load(f)
         except yaml.YAMLError as exc:
@@ -32,22 +31,34 @@ def get_latlon(address, return_latlon_only=True, lag=2):
 
     geo_params = {
         'address': address,
-        'api_key': api_key
+        'key': api_key
     }
 
-    response = requests.get(geo_api, params=geo_params)
+    attempts = 0
+    results = []
 
-    if response.status_code == 200:
-        if return_latlon_only:
-            results = latlon = response.json()['results']
-            if len(results) > 0:
+    while len(results) == 0:
+        time.sleep(lag)  # wait some time before each request
+        response = requests.get(geo_api, params=geo_params)
+        results = response.json()['results']
+
+        # if return_latlon_only:
+
+        if len(results) > 0:
+            if return_latlon_only:
                 latlon = results[0]['geometry']['location']
                 return latlon['lat'], latlon['lng']
             else:
-                print(f"{response.status_code}: But index error?")
-                return None, None
+                return results
         else:
-            return response.json()
-    else:
-        print(f"{response.status_code}: Could not return lat and lon results.")
-        return None
+            attempts += 1
+            if attempts == 5:
+                print("Reached 5 attempts")
+                print(response.json())
+                return None, None
+
+    if response.status_code != 200:
+        print(f'Request failed, status code {response.status_code}'
+              '\nContent:'
+              '\n{response.content[:1000]}')
+        return None, None

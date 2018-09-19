@@ -5,3 +5,5 @@ private_data/
 secret/
 pdfs/
 .DS_Store
+src/nlp/model/
+src/nlp/data/
