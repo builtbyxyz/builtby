@@ -5,10 +5,17 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTFigure
 
-from timer import watchdog_timer
+from .timer import watchdog_timer
 import threading
 
 import pandas as pd
+
+import boto3
+import tempfile
+import requests
+from pdf2image import convert_from_path
+from io import BytesIO
+import uuid
 
 
 def parse_layout(layout, container, idx=0, page_num=None, verbose=False):
@@ -112,3 +119,48 @@ def get_extractable_pages(path, max_pages=50):
                 break
 
     return ok_pages
+
+
+def download_document(url, suffix='.pdf'):
+    """Download pdf document at url
+    """
+    response = requests.get(url)
+
+    # create a temporary file for the download
+    f = tempfile.NamedTemporaryFile(suffix=suffix)
+
+    if response.status_code != 200:
+        raise IOError(f'Request failed, status code {response.status_code}'
+                      '\nContent:'
+                      '\n{response.content[:1000]}')
+
+    f.write(response.content)
+    return f
+
+
+def convert_pdf_to_png(pdf_f):
+    png_pages = convert_from_path(pdf_f.name, first_page=1,
+                                  last_page=1, dpi=200, fmt='png')
+    first_page_png = png_pages[0]
+
+    f = BytesIO()  # create a empty file object to save the image
+    first_page_png.save(f, format='PNG')
+    return f.getvalue()
+
+
+def save_to_s3(data, bucket_name, file_name=None):
+    s3 = boto3.client('s3')
+
+    if file_name is None:
+        s3_folder = 'dpcover/'
+        file_name = s3_folder + str(uuid.uuid4()) + '.png'
+    s3.put_object(Bucket=bucket_name, Key=file_name, Body=data,
+                  ContentType='image/png', ACL='public-read')
+    return file_name
+
+
+def download_and_convert_pdf(doc_url):
+    pdf_f = download_document(doc_url)
+    png_data = convert_pdf_to_png(pdf_f)
+    file_name = save_to_s3(png_data, 'builtby')
+    return file_name

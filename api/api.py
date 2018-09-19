@@ -39,17 +39,20 @@ with open('supported_args.txt', 'r') as f:
 # }
 
 
-with open('../data/new_projects.json', 'r') as f:
-    NEW_PROJECTS = json.load(f)
+# with open('../data/new_projects.json', 'r') as f:
+#     NEW_PROJECTS = json.load(f)
 
 mc = MongoClient('localhost', 27017)
 db = mc['builtby']
 COMPANIES = list(db['companies_20180816'].find())
+NEW_PROJECTS = list(db['new_projects'].find())
 
 # convert mongo objectid object to string for json serialization
 for company in COMPANIES:
     company['_id'] = str(company['_id'])
 
+for project in NEW_PROJECTS:
+    project['_id'] = str(project['_id'])
 
 # @auth.verify_password
 # def verify(username, password):
