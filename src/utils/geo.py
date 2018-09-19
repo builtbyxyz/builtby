@@ -50,7 +50,7 @@ def get_latlon(address, return_latlon_only=True, lag=2):
                 latlon = results[0]['geometry']['location']
                 return latlon['lat'], latlon['lng']
             else:
-                print(f"{response.status_code}: But index error?")
+                print(f"""{response.status_code}: but results were empty""")
                 return None, None
         else:
             return response.json()
