@@ -20,6 +20,7 @@ from pymongo import MongoClient
 import json
 import requests
 from utils.manage_params import manage_params
+from utils.manage_attr import attr_conversion_pipeline
 
 app = Flask(__name__)
 api = Api(app)
@@ -75,7 +76,8 @@ class Permit_LandUse(Resource):
         params = manage_params(args)
         response = requests.get(url, params=params)
         LANDUSE = response.json()
-        return LANDUSE
+        transform_landuse = attr_conversion_pipeline(LANDUSE)
+        return transform_landuse
 
 
 class Permit_Building(Resource):
@@ -90,7 +92,8 @@ class Permit_Building(Resource):
         params = manage_params(args)
         response = requests.get(url, params=params)
         BUILDINGS = response.json()
-        return BUILDINGS
+        transform_buildings = attr_conversion_pipeline(BUILDINGS)
+        return transform_buildings
 
 
 class Permit_Electrical(Resource):
@@ -105,7 +108,8 @@ class Permit_Electrical(Resource):
         params = manage_params(args)
         response = requests.get(url, params=params)
         ELECTRICAL = response.json()
-        return ELECTRICAL
+        transform_electrical = attr_conversion_pipeline(ELECTRICAL)
+        return transform_electrical
 
 
 class Permit_Trade(Resource):
@@ -120,7 +124,8 @@ class Permit_Trade(Resource):
         params = manage_params(args)
         response = requests.get(url, params=params)
         TRADE = response.json()
-        return TRADE
+        transform_trade = attr_conversion_pipeline(TRADE)
+        return transform_trade
 
 
 # shows projects with upcoming design review meetings

@@ -1,10 +1,12 @@
 # BuiltBy
 Web application to browse projects filtered by construction professionals.
 
-URL: builtby.xyz
+URL: http://builtby.herokuapp.com/
 
-![screenshot](images/2018-08-24screenshot.png)
+![screenshot](images/2018-09-17screenshot.png)
 
+
+Front End Repository is located at https://github.com/Ventronik/BuiltyBy-FE
 ___
 
 ## Tech Stack
