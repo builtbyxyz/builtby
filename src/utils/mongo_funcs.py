@@ -27,7 +27,7 @@ def update_doc(dbname, coll, doc, *fields_dict):
 
 
 def load_collection(dbname, coll, to_json=False):
-    """
+    """Connect to local mongodb and returns the specified db and collection
     """
     mc = MongoClient('localhost', 27017)
     db = mc[dbname]

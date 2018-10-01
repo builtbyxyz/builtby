@@ -2,54 +2,12 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 
-import json
-import plac
-
 from utils.geo_funcs import get_latlon
 from utils.pdf_funcs import download_and_convert_pdf
 from utils.mongo_funcs import (load_collection, write_collection, write_doc,
                                delete_collection, update_doc)
 from utils.date_funcs import get_last_date
 from utils.request_funcs import get_rss_items
-
-
-""" GENERAL FUNCTIONS """
-""" ----------------- """
-
-
-def load_json(path):
-    """Load existing json file for new_projects
-    """
-    with open(path, 'r') as f:
-        new_projects = json.load(f)
-
-    return new_projects
-
-
-def write_to_json(data, path):
-    """Write to list of dictionaries to a JSON file
-    """
-    with open(path, 'w') as f:
-        json.dump(data, f, indent=4)
-
-
-def package_new_projects(projects_list, path):
-    """Creates meta data object and saves the new projects under the 'data' key
-
-    -- FOR JSON FILES ONLY --
-    """
-    last_run_date = datetime.datetime.now().strftime('%m/%d/%Y')
-    last_pub_date = get_last_date(projects_list, k='published_date')
-    new_projects_obj = {}  # empty object container
-    new_projects_obj['meta'] = {
-        'last_pub_date': last_pub_date,
-        'last_run_date': last_run_date}
-    new_projects_obj['data'] = projects_list
-    return new_projects_obj
-
-
-""" CREATING PROJECTS """
-""" ----------------- """
 
 
 def create_project_obj(elem):
@@ -138,7 +96,7 @@ def parse_proposal_page(project):
     return project
 
 
-def load_project(project, dbname='builtby', coll='new_projects'):
+def load_project(project, dbname='builtby', coll='new_projects', check_existing=False):
     """Load a project document into a MongoDB collection
 
     Before a project is loaded, check if the project already exists in the
@@ -156,15 +114,19 @@ def load_project(project, dbname='builtby', coll='new_projects'):
     # get mongo cursor for local collection
     projects_cursor = load_collection('builtby', 'new_projects')
 
-    # existing will be a list of documents matching the attributes
-    existing = projects_cursor.find({
-        'project_num': project_num,
-        'address': address,
-        'description': description,
-        'design_review_link': design_review_link
-    })
+    if check_existing:
+        # existing will be a list of documents matching the attributes
+        existing = projects_cursor.find({
+            'project_num': project_num,
+            'address': address,
+            'description': description,
+            'design_review_link': design_review_link
+        })
 
-    if len(list(existing)) == 0:
+        if len(list(existing)) == 0:
+            write_doc(dbname, coll, project)
+
+    else:
         write_doc(dbname, coll, project)
 
 
@@ -183,31 +145,6 @@ def package_project(project):
         print("This project has a design proposal")
         project = get_project_image(project)
     return project
-
-
-def create_new_projects_db(dbname='builtby', coll='new_projects',
-                           overwrite=False):
-    """Creates a new collection and loads the collection with projects
-
-    Returns:
-        None
-    """
-    if overwrite:
-        delete_collection(dbname, coll)
-
-    base_url = "http://www.seattle.gov/DPD/aboutus/news/events/DesignReview/"
-    rss_url = "{}upcomingreviews/RSS.aspx".format(base_url)
-
-    # get rss html items
-    items = get_rss_items(rss_url)
-    print(f"Found {len(items)} items.")
-
-    # upcoming_projects = []  # container for list of dictionaries
-    # create project objects
-    for item in items:
-        project = create_project_obj(item)
-        document = package_project(project)  # send project through pipeline
-        load_project(document)
 
 
 """ SUPPLEMENTING PROJECT INFO """
@@ -322,40 +259,3 @@ def update_new_projects_db(path_to_json):
     combined = new_projects['data']
     combined.extend(newly_published_projects)
     return combined
-
-
-@plac.annotations(
-    new=("Create new collection", "flag", "n"),
-    overwrite=("Overwrite the existing collection", "flag", "o"),
-    to_json=("Convert mongo collection to json", "flag", None),
-    to_mongo=("Convert json to mongo", "option", None),
-    resolve_geo=("Resolve missing lat and lon info", "flag", None)
-    )
-def main(new=False, overwrite=False, to_json=False, to_mongo=None,
-         resolve_geo=False):
-    """Creates or updates a JSON file with projects from an RSS feed."""
-    if new:
-        create_new_projects_db(dbname='builtby', coll='new_projects',
-                               overwrite=overwrite)
-    elif to_json:
-        projects = load_collection(dbname='builtby', coll='new_projects',
-                                   to_json=to_json)
-        for project in projects:
-            if '_id' in project:
-                del project['_id']
-        path = "../data/new_projects_1.json"
-        write_to_json(projects, path)
-    elif to_mongo is not None:  # convert json file at path to mongo
-        path = to_mongo
-        projects = load_json(path)
-        write_collection(dbname='builtby', coll='new_projects', data=projects,
-                         delete_existing=True)
-    elif resolve_geo:
-        projects = load_collection(dbname='builtby', coll='new_projects')
-        resolve_geo_attr_mongo(projects)
-    else:
-        print("Hello world!")
-
-
-if __name__ == "__main__":
-    plac.call(main)
