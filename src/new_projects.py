@@ -5,10 +5,12 @@ from bs4 import BeautifulSoup
 import json
 import plac
 
-from utils.geo import get_latlon
-from utils.pdf import download_and_convert_pdf
-from utils.mongo import (load_collection, write_collection, write_doc,
-                         delete_collection, update_doc)
+from utils.geo_funcs import get_latlon
+from utils.pdf_funcs import download_and_convert_pdf
+from utils.mongo_funcs import (load_collection, write_collection, write_doc,
+                               delete_collection, update_doc)
+from utils.date_funcs import get_last_date
+from utils.request_funcs import get_rss_items
 
 
 """ GENERAL FUNCTIONS """
@@ -31,23 +33,6 @@ def write_to_json(data, path):
         json.dump(data, f, indent=4)
 
 
-def get_last_date(data, k='published_date'):
-    """Extracts the date field for each item in the dict and returns the most
-    recent date.
-
-    Arguments:
-        data (list of dict or JSON)
-    Return:
-        last_date as string in format MM/DD/YYYY
-    """
-    dates = []
-    for item in data:
-        date_item = datetime.datetime.strptime(item[k], '%m/%d/%Y')
-        dates.append(date_item)
-    last_date = max(dates)
-    return last_date.strftime('%m/%d/%Y')
-
-
 def package_new_projects(projects_list, path):
     """Creates meta data object and saves the new projects under the 'data' key
 
@@ -67,28 +52,12 @@ def package_new_projects(projects_list, path):
 """ ----------------- """
 
 
-def get_rss_items(rss_url):
-    """Returns the HTML elements in the RSS feed
-
-    Arguments:
-        rss_url (str): URL to RSS feed
-
-    Returns:
-        items (list of div elements)
-    """
-    response = requests.get(rss_url)
-    html = response.content
-    soup = BeautifulSoup(html, 'html.parser')
-    items = soup.select('item')  # each item is a different permit
-    return items
-
-
 def create_project_obj(elem):
     """Creates a project JSON object when given an HTML element from the
     RSS feed.
 
     Arguments:
-        elem (html element)
+        elem (bs4 html element)
     Returns:
         project (dict)
     """
@@ -368,18 +337,15 @@ def main(new=False, overwrite=False, to_json=False, to_mongo=None,
     if new:
         create_new_projects_db(dbname='builtby', coll='new_projects',
                                overwrite=overwrite)
-        # package_new_projects(new_projects, path)
     elif to_json:
         projects = load_collection(dbname='builtby', coll='new_projects',
                                    to_json=to_json)
-        # print(projects)
         for project in projects:
             if '_id' in project:
                 del project['_id']
-
-        path = "../data/new_projects.json"
+        path = "../data/new_projects_1.json"
         write_to_json(projects, path)
-    elif to_mongo is not None:
+    elif to_mongo is not None:  # convert json file at path to mongo
         path = to_mongo
         projects = load_json(path)
         write_collection(dbname='builtby', coll='new_projects', data=projects,
@@ -387,7 +353,6 @@ def main(new=False, overwrite=False, to_json=False, to_mongo=None,
     elif resolve_geo:
         projects = load_collection(dbname='builtby', coll='new_projects')
         resolve_geo_attr_mongo(projects)
-
     else:
         print("Hello world!")
 
