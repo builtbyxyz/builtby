@@ -43,7 +43,6 @@ def get_latlon(address, return_latlon_only=True, lag=2):
         results = response.json()['results']
 
         # if return_latlon_only:
-
         if len(results) > 0:
             if return_latlon_only:
                 latlon = results[0]['geometry']['location']
@@ -52,6 +51,7 @@ def get_latlon(address, return_latlon_only=True, lag=2):
                 return results
         else:
             attempts += 1
+            print("Attempt: {attempts}")
             if attempts == 5:
                 print("Reached 5 attempts")
                 print(response.json())
