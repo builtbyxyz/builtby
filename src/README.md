@@ -25,3 +25,14 @@
 
 
 ### Project Schema
+
+
+## Check RSS Feed Daily
+1. Load existing mongodb.
+2. Get last published date.
+3. Make request to RSS feed to get list of links.
+4. Parse links to check published date.
+5. Remove project links that are older than last published .
+6. Package approved projects and format as JSON or dict.
+    * RSS HTML -> PROJECT OBJECT -> GET_LATLON -> GET IMAGE ->  -> LOAD INTO MONGODB
+7. Add these projects to the database.
