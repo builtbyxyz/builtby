@@ -16,7 +16,7 @@ from utils.date_funcs import get_last_date
 from utils.request_funcs import get_rss_items
 from utils.soup_funcs import get_specific_elem
 from utils.project_funcs import (create_project_obj, package_project,
-                                 load_project)
+                                 save_project)
 
 
 """
@@ -58,7 +58,7 @@ def project_pipeline(project_object):
     #   add latlon
     #   parse proposal page
     #   add project image if available
-    load_project(project_object)
+    save_project(project_object)
 
 
 def main():

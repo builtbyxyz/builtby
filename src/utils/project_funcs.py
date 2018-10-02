@@ -1,13 +1,14 @@
 import datetime
 import requests
 from bs4 import BeautifulSoup
+import json
 
 from utils.geo_funcs import get_latlon
 from utils.pdf_funcs import download_and_convert_pdf
-from utils.mongo_funcs import (load_collection, write_collection, write_doc,
-                               delete_collection, update_doc)
-from utils.date_funcs import get_last_date
+from utils.mongo_funcs import load_collection, write_doc, update_doc
 from utils.request_funcs import get_rss_items
+from utils.json_funcs import load_json
+# from utils.date_funcs import get_last_date
 
 
 def create_project_obj(elem):
@@ -96,7 +97,8 @@ def parse_proposal_page(project):
     return project
 
 
-def load_project(project, dbname='builtby', coll='new_projects', check_existing=False):
+def save_project(project, dbname='builtby', coll='new_projects',
+                 check_existing=False):
     """Load a project document into a MongoDB collection
 
     Before a project is loaded, check if the project already exists in the
