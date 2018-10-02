@@ -11,26 +11,11 @@ from utils.mongo_funcs import (load_collection, write_collection, write_doc,
                                delete_collection, update_doc)
 from utils.date_funcs import get_last_date
 from utils.request_funcs import get_rss_items
+from utils.json_funcs import load_json, write_to_json
 
 
 """ GENERAL FUNCTIONS """
 """ ----------------- """
-
-
-def load_json(path):
-    """Load existing json file for new_projects
-    """
-    with open(path, 'r') as f:
-        new_projects = json.load(f)
-
-    return new_projects
-
-
-def write_to_json(data, path):
-    """Write to list of dictionaries to a JSON file
-    """
-    with open(path, 'w') as f:
-        json.dump(data, f, indent=4)
 
 
 def package_new_projects(projects_list, path):
