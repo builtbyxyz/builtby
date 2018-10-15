@@ -38,10 +38,10 @@ def create_new_projects_db(dbname='builtby', coll='new_projects',
     new=("Create new collection", "flag", "n"),
     overwrite=("Overwrite the existing collection", "flag", "o"),
     to_json=("Convert mongo collection to json", "flag", None),
-    to_mongo=("Convert json to mongo", "option", None),
+    to_mongo=("Convert json to mongo", "flag", None),
     resolve_geo=("Resolve missing lat and lon info", "flag", None)
     )
-def main(new=False, overwrite=False, to_json=False, to_mongo=None,
+def main(new=False, overwrite=False, to_json=False, to_mongo=False,
          resolve_geo=False):
     """Creates or updates a JSON file with projects from an RSS feed."""
     if new:
@@ -55,8 +55,8 @@ def main(new=False, overwrite=False, to_json=False, to_mongo=None,
                 del project['_id']
         path = "../data/new_projects_1.json"
         write_to_json(projects, path)
-    elif to_mongo is not None:  # convert json file at path to mongo
-        path = to_mongo
+    elif to_mongo:  # convert json file at path to mongo
+        path = '../data/new_projects_1.json'
         projects = load_json(path)
         write_collection(dbname='builtby', coll='new_projects', data=projects,
                          delete_existing=True)
